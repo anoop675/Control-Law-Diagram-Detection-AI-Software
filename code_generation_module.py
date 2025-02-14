@@ -49,15 +49,16 @@ def generate_c_code(graph, function_definitions):
         c_code.append(func)
     
     c_code.append("\nint main() {")
-    c_code.append("    int A = 1, B = 0, C = 1;")
-    c_code.append("    int Y1, Y2;")
+    #c_code.append("    int A = 1, B = 0, C = 1;")
+    #c_code.append("    int Y1, Y2;")
 
     temp_var_count = 1
     temp_vars = {}
 
     for node in topo_order:
         if node in {"A", "B", "C"}:
-            continue  # Skip input nodes
+            #continue  # Skip input nodes
+            c_code.append(f"    double {node};  //values not defined")
         elif node.startswith("Y"):
             # Set output variable directly from its dependency
             input_nodes = [n for n in graph if node in graph[n]]
@@ -70,10 +71,10 @@ def generate_c_code(graph, function_definitions):
             # Generate a temporary variable for the current node
             inputs = [var for var in graph if node in graph[var]]
             input_vars = [temp_vars[i] if i in temp_vars else i for i in inputs]
-            temp_var = f"temp_{temp_var_count}"
+            temp_var = f"temp{temp_var_count}"
             temp_vars[node] = temp_var
             temp_var_count += 1
-            c_code.append(f"    int {temp_var} = {node}({', '.join(input_vars)});")
+            c_code.append(f"    double {temp_var} = {node}({', '.join(input_vars)});")
 
     c_code.append('    printf("Y1 = %d\\n", Y1);')
     c_code.append('    printf("Y2 = %d\\n", Y2);')
