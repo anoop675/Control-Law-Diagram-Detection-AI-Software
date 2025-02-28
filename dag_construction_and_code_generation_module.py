@@ -1,0 +1,141 @@
+from collections import defaultdict, deque
+
+def is_inside_bbox(point, bbox):
+    #Check if a point (x, y) is inside a bounding box (x_min, y_min, x_max, y_max)
+    x, y = point
+    x_min, y_min, x_max, y_max = bbox
+    return x_min <= x <= x_max and y_min <= y <= y_max
+
+# Build DAG using objects and connections
+def build_dag(objects, connections):
+    graph = {}
+
+    for path in connections:
+        source, destination = None, None
+    
+        # Identify source node (first point inside a bbox)
+        for point in path:
+            for obj, data in objects.items():
+                if is_inside_bbox(point, data["bbox"]):
+                    source = obj
+                    break
+            if source:
+                break  # Stop once source is found
+    
+        # Identify destination node (last point inside a bbox)
+        for point in reversed(path):
+            for obj, data in objects.items():
+                if is_inside_bbox(point, data["bbox"]):
+                    destination = obj
+                    break
+            if destination:
+                break  # Stop once destination is found
+    
+        # Add source → destination to DAG
+        if source and destination and source != destination:
+            graph.setdefault(source, []).append(destination)
+    
+    #Ensure all detected output nodes (destinations with no outgoing edges) exist
+    all_destinations = {dest for dest_list in graph.values() for dest in dest_list}
+    for dest in all_destinations:
+        if dest not in graph:
+            graph[dest] = []  # Output node (no outgoing edges)
+            
+    #print("Directed Acyclic Graph: \n"+str(graph))        
+    return graph
+
+# Topological Sort to get the order of function calls
+def topological_sort(graph):
+    in_degree = {node: 0 for node in graph}
+    for node in graph:
+        for neighbor in graph[node]:
+            in_degree[neighbor] += 1
+
+    queue = deque([node for node in graph if in_degree[node] == 0])
+    topo_order = []
+
+    while queue:
+        node = queue.popleft()
+        topo_order.append(node)
+        for neighbor in graph[node]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+
+    #print("Topological sorted order: "+str(topo_order))
+    return topo_order
+
+# Generate C code from topological order
+def generate_c_code(graph):
+    topo_order = topological_sort(graph)
+    c_code = ["#include <stdio.h>"]
+    c_code.append("#include <math.h>\n")
+    '''
+    # Add function prototypes
+    for func in function_definitions.values():
+        c_code.append(func)
+    '''
+    c_code.append("TODO: insert function definitions\n")
+    c_code.append("int main(void) {")
+
+    temp_var_count = 1
+    temp_vars = {}
+    output_nodes = []
+
+    for node in topo_order:
+        if node in {"A", "B", "C"}:
+            #continue  # Skip input nodes
+            c_code.append(f"    double {node};  //values not defined")
+        elif node.startswith("Y"):
+            output_nodes.append(node) # Store output nodes for dynamic print statements
+            # Set output variable directly from its dependency
+            input_nodes = [n for n in graph if node in graph[n]]
+            if input_nodes:
+                input_var = temp_vars[input_nodes[0]]  # Get temp variable of dependency
+                c_code.append(f"    {node} = {input_var};")
+            else:
+                raise KeyError(f"Node '{node}' has no computed value.")
+        else:
+            # Generate a temporary variable for the current node
+            inputs = [var for var in graph if node in graph[var]]
+            input_vars = [temp_vars[i] if i in temp_vars else i for i in inputs]
+            temp_var = f"temp{temp_var_count}"
+            temp_vars[node] = temp_var
+            temp_var_count += 1
+            c_code.append(f"    double {temp_var} = {node}({', '.join(input_vars)});")
+
+    # Generate dynamic printf statements for output nodes
+    for output in output_nodes:
+        c_code.append(f'    printf("{output} = %f\\n", {output});')
+
+    c_code.append('    return 0;')
+    c_code.append('}')
+
+    return "\n".join(c_code)
+
+# Generate and print the C code
+try:
+    objects = { # format: (x_min, y_min, x_max, y_max)
+        "A": {"bbox": (1,1, 3,2)},  
+        "B": {"bbox": (1,3, 3,4)},
+        "OR": {"bbox": (5,1, 7,3)},
+        "Y": {"bbox": (9,2, 11,3)}
+    }
+    '''
+     connections = [
+        [(3,1.5), (4,1.5), (5.5,1.5)],  # A -> OR (via intermediate point)
+        [(3,3.5), (4,3.5), (4,2.5), (5,3)],  # B -> OR (with a corner)
+        [(7,2), (8,2), (9,2)]  # OR -> Y (straight)
+    ]
+    '''
+    connections = [
+        [(3,1.5), (5.5,1.5)],  # A -> OR (via intermediate point)
+        [(3,3.5), (4,3.5), (4,2.5), (5,3)],  # B -> OR (with 2 corners)
+        [(7,2), (9,2)]  # OR -> Y (straight)
+    ]
+    dag = build_dag(objects, connections) 
+    #c_code = generate_c_code(dag, function_definitions)
+    c_code = generate_c_code(dag)
+    print(c_code)
+except KeyError as e:
+    print(f"ERROR: {e}")
