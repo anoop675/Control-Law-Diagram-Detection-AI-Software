@@ -1,10 +1,14 @@
 from collections import defaultdict, deque
 
+#Checks if a point (x, y) is inside a bounding box (x_min, y_min, x_max, y_max)
 def is_inside_bbox(point, bbox):
-    #Check if a point (x, y) is inside a bounding box (x_min, y_min, x_max, y_max)
     x, y = point
     x_min, y_min, x_max, y_max = bbox
-    return x_min <= x <= x_max and y_min <= y <= y_max
+    
+    is_x_within_x_bbox = x_min <= x <= x_max
+    is_y_within_y_bbox = y_min <= y <= y_max
+    
+    return is_x_within_x_bbox and is_y_within_y_bbox
 
 # Build DAG using objects and connections
 def build_dag(objects, connections):
@@ -20,7 +24,7 @@ def build_dag(objects, connections):
                     source = obj
                     break
             if source:
-                break  # Stop once source is found
+                break
     
         # Identify destination node (last point inside a bbox)
         for point in reversed(path):
@@ -29,7 +33,7 @@ def build_dag(objects, connections):
                     destination = obj
                     break
             if destination:
-                break  # Stop once destination is found
+                break
     
         # Add source → destination to DAG
         if source and destination and source != destination:
@@ -115,24 +119,42 @@ def generate_c_code(graph):
 
 if __name__ == "__main__":
     try:
+        '''
         objects = { # format: (x_min, y_min, x_max, y_max)
             "A": {"bbox": (1,1, 3,2)},  
             "B": {"bbox": (1,3, 3,4)},
             "OR": {"bbox": (5,1, 7,3)},
             "Y": {"bbox": (9,2, 11,3)}
         }
-        '''
          connections = [
             [(3,1.5), (4,1.5), (5.5,1.5)],  # A -> OR (via intermediate point)
             [(3,3.5), (4,3.5), (4,2.5), (5,3)],  # B -> OR (with a corner)
             [(7,2), (8,2), (9,2)]  # OR -> Y (straight)
         ]
-        '''
+        
         connections = [
             [(3,1.5), (5.5,1.5)],  # A -> OR (via intermediate point)
             [(3,3.5), (4,3.5), (4,2.5), (5,3)],  # B -> OR (with 2 corners)
             [(7,2), (9,2)]  # OR -> Y (straight)
         ]
+        '''
+        objects = {
+            "A": {"bbox": (100, 50, 200, 100)},  
+            "B": {"bbox": (120, 200, 220, 250)},
+            "C": {"bbox": (100, 400, 200, 450)},
+            "OR": {"bbox": (300, 100, 400, 200)},
+            "NOT": {"bbox": (300, 400, 350, 450)},
+            "Y1": {"bbox": (500, 150, 600, 200)},
+            "Y2": {"bbox": (500, 400, 600, 450)}
+        }
+        connections = [
+            [(200, 75), (305, 75)],   # A -> OR (straight)
+            [(220, 225), (260, 225), (260, 175), (305, 175)], # B -> OR (2 corners)
+            [(400, 150), (500, 150)],  # OR -> Y1 (straight)
+            [(200, 425), (300, 425)], # C -> NOT (straight)
+            [(350, 425), (500, 425)] # NOT -> Y2 (straight)
+        ]
+        
         dag = build_dag(objects, connections) 
         #c_code = generate_c_code(dag, function_definitions)
         c_code = generate_c_code(dag)
