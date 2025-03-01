@@ -113,29 +113,29 @@ def generate_c_code(graph):
 
     return "\n".join(c_code)
 
-# Generate and print the C code
-try:
-    objects = { # format: (x_min, y_min, x_max, y_max)
-        "A": {"bbox": (1,1, 3,2)},  
-        "B": {"bbox": (1,3, 3,4)},
-        "OR": {"bbox": (5,1, 7,3)},
-        "Y": {"bbox": (9,2, 11,3)}
-    }
-    '''
-     connections = [
-        [(3,1.5), (4,1.5), (5.5,1.5)],  # A -> OR (via intermediate point)
-        [(3,3.5), (4,3.5), (4,2.5), (5,3)],  # B -> OR (with a corner)
-        [(7,2), (8,2), (9,2)]  # OR -> Y (straight)
-    ]
-    '''
-    connections = [
-        [(3,1.5), (5.5,1.5)],  # A -> OR (via intermediate point)
-        [(3,3.5), (4,3.5), (4,2.5), (5,3)],  # B -> OR (with 2 corners)
-        [(7,2), (9,2)]  # OR -> Y (straight)
-    ]
-    dag = build_dag(objects, connections) 
-    #c_code = generate_c_code(dag, function_definitions)
-    c_code = generate_c_code(dag)
-    print(c_code)
-except KeyError as e:
-    print(f"ERROR: {e}")
+if __name__ == "__main__":
+    try:
+        objects = { # format: (x_min, y_min, x_max, y_max)
+            "A": {"bbox": (1,1, 3,2)},  
+            "B": {"bbox": (1,3, 3,4)},
+            "OR": {"bbox": (5,1, 7,3)},
+            "Y": {"bbox": (9,2, 11,3)}
+        }
+        '''
+         connections = [
+            [(3,1.5), (4,1.5), (5.5,1.5)],  # A -> OR (via intermediate point)
+            [(3,3.5), (4,3.5), (4,2.5), (5,3)],  # B -> OR (with a corner)
+            [(7,2), (8,2), (9,2)]  # OR -> Y (straight)
+        ]
+        '''
+        connections = [
+            [(3,1.5), (5.5,1.5)],  # A -> OR (via intermediate point)
+            [(3,3.5), (4,3.5), (4,2.5), (5,3)],  # B -> OR (with 2 corners)
+            [(7,2), (9,2)]  # OR -> Y (straight)
+        ]
+        dag = build_dag(objects, connections) 
+        #c_code = generate_c_code(dag, function_definitions)
+        c_code = generate_c_code(dag)
+        print(c_code)
+    except KeyError as e:
+        print(f"ERROR: {e}")
