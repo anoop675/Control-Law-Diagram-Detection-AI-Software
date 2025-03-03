@@ -56,7 +56,7 @@ def build_dag(objects, connections):
             if potential_source is None:
                 potential_source = get_existing_source(point, objects, connections, path_list)
         
-            #print(f"Potential Source: {potential_source} for point {point}")
+            print(f"Potential Source: {potential_source} for point {point}")
             
             if potential_source:
                 source = potential_source
@@ -68,7 +68,7 @@ def build_dag(objects, connections):
             for obj, data in objects.items():
                 if is_inside_bbox(point, data["bbox"]):
                     potential_destination = obj
-                    #print(f"Potential Destination: {potential_destination} for point {point}")
+                    print(f"Potential Destination: {potential_destination} for point {point}")
     
                     if potential_destination != source:  
                         destination = potential_destination
@@ -180,7 +180,7 @@ if __name__ == "__main__":
             [(7,2), (9,2)]  # OR -> Y (straight)
         ]
         '''
-        #Refer to image.png in repo
+        #Refer image.png in repo main dir
         objects = {
             "A": {"bbox": (100, 50, 200, 100)},  
             "B": {"bbox": (120, 200, 220, 250)},
@@ -199,7 +199,7 @@ if __name__ == "__main__":
             [(400, 150), (500, 150)],  # OR -> Y1 (straight)
             [(200, 425), (300, 425)], # C -> NOT (straight)
             [(350, 425), (500, 425)], # NOT -> Y2 (straight)
-            [(485, 425), (485, 270), (670, 270)], #NOT -> SUM (1 corner)
+            [(350, 425), (485, 270), (670, 270)], #NOT -> SUM (1 corner)
             [(280, 425), (280, 575), (600, 575)], # C -> Y3 (1 corner)
             #[(600, 175), (650, 275)],  # Y1 -> SUM (straight)
             [(425, 425), (425, 150), (650, 312)],  # Y2 -> SUM (two corners)
