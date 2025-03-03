@@ -56,7 +56,7 @@ def build_dag(objects, connections):
             if potential_source is None:
                 potential_source = get_existing_source(point, objects, connections, path_list)
         
-            print(f"Potential Source: {potential_source} for point {point}")
+            #print(f"Potential Source: {potential_source} for point {point}")
             
             if potential_source:
                 source = potential_source
@@ -68,7 +68,7 @@ def build_dag(objects, connections):
             for obj, data in objects.items():
                 if is_inside_bbox(point, data["bbox"]):
                     potential_destination = obj
-                    print(f"Potential Destination: {potential_destination} for point {point}")
+                    #print(f"Potential Destination: {potential_destination} for point {point}")
     
                     if potential_destination != source:  
                         destination = potential_destination
@@ -94,7 +94,7 @@ def build_dag(objects, connections):
         if dest not in graph:
             graph[dest] = []  # Output node (no outgoing edges)
     
-    print(dict(graph))
+    #print(dict(graph))
     return dict(graph)  # Convert defaultdict to normal dict
 
 # Topological Sort to get the order of function calls
@@ -121,10 +121,21 @@ def topological_sort(graph):
 # Generate C code from topological order
 def generate_c_code(graph):
     topo_order = topological_sort(graph)  # Get nodes in dependency order
-    c_code = ["#include <stdio.h>", "#include <math.h>\n"]
-    c_code.append("// TODO: function definitions here.\n")
+    c_code = ["#include <stdio.h>", "#include <stdlib.h>", "#include <float.h>", "#include <stdbool.h>", "#include <string.h>", "#include <math.h>\n"]
+    c_code.append("// TODO: function definitions here")
+    '''   
+    function_nodes = {node for node in graph if node not in {"A", "B", "C"} and not node.startswith("Y")}
 
-    c_code.append("int main(void) {")
+    # Generate function prototypes
+    for func in function_nodes:
+        if func == "OR":
+            c_code.append("double OR(double, double);")
+        elif func == "NOT":
+            c_code.append("double NOT(double);")
+        elif func == "SUM":
+            c_code.append("double SUM(double, double);")
+    '''
+    c_code.append("\nint main(void) {")
     
     temp_var_count = 1
     temp_vars = {}  # To map logical functions to temporary variables
@@ -154,7 +165,7 @@ def generate_c_code(graph):
     for output in output_nodes:
         c_code.append(f'    printf("{output} = %f\\n", {output});')
 
-    c_code.append("    return 0;")
+    c_code.append("\n    return 0;")
     c_code.append("}")
 
     return "\n".join(c_code)
@@ -180,7 +191,7 @@ if __name__ == "__main__":
             [(7,2), (9,2)]  # OR -> Y (straight)
         ]
         '''
-        #Refer image.png in repo main dir
+        # refer image.png in repo's main dir
         objects = {
             "A": {"bbox": (100, 50, 200, 100)},  
             "B": {"bbox": (120, 200, 220, 250)},
