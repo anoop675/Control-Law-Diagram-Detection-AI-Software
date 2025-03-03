@@ -180,6 +180,7 @@ if __name__ == "__main__":
             [(7,2), (9,2)]  # OR -> Y (straight)
         ]
         '''
+        #Refer to image.png in repo
         objects = {
             "A": {"bbox": (100, 50, 200, 100)},  
             "B": {"bbox": (120, 200, 220, 250)},
