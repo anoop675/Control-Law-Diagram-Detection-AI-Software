@@ -98,13 +98,13 @@ def build_dag(objects, connections):
 
 # Topological Sort to get the order of function calls
 def topological_sort(graph):
+    topo_order = []
     in_degree = {node: 0 for node in graph}
     for node in graph:
         for neighbor in graph[node]:
             in_degree[neighbor] += 1
 
     queue = deque([node for node in graph if in_degree[node] == 0])
-    topo_order = []
 
     while queue:
         node = queue.popleft()
