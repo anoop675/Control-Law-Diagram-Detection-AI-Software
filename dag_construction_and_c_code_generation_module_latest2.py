@@ -10,9 +10,8 @@ def is_inside_bbox(point, bbox):
     
     return is_x_within_x_bbox and is_y_within_y_bbox
 
-def get_existing_source(point, objects, connections, path_list):
+def get_existing_source(coinciding_point, objects, connections, path_list):
     source = None
-    coinciding_point = point  # First point in the path
     #print(f"Checking for coinciding point: {coinciding_point}")
             
     for existing_path in path_list:
@@ -171,7 +170,7 @@ def generate_c_code(graph):
     return "\n".join(c_code)
 
 if __name__ == "__main__":
-    #try:
+    try:
         '''
         objects = { # format: (x_min, y_min, x_max, y_max)
             "A": {"bbox": (1,1, 3,2)},  
@@ -221,6 +220,8 @@ if __name__ == "__main__":
         dag = build_dag(objects, connections) 
         #c_code = generate_c_code(dag, function_definitions)
         c_code = generate_c_code(dag)
-        print(c_code)
-    #except KeyError as e:
-        #print(f"ERROR: {e}")
+        #print(c_code)
+        with open("control_law_c_code.c", "w") as file:
+            file.write(c_code)
+    except KeyError as e:
+        print(f"ERROR: {e}")
