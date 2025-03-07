@@ -1,6 +1,6 @@
-# Code-Generation-AI-Project, GTRE DRDO internship project
+# Control Law Diagram Detection Software for Automatic C code Generation for FADEC System, GTRE DRDO internship project
 
-# Algorithm: Logic Diagram to Code Generation
+# Algorithm: Control Law Diagram -> Directed Acyclic Graph -> Topological Sort -> C code
 
 # Input:
 Accept a logic diagram image (input_image).
