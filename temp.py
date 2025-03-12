@@ -1,4 +1,3 @@
-#TODO: C -> Y3 not detected in graph though paths (connections) are correct
 from collections import defaultdict, deque
 
 def build_line_segments_graph(line_segments):
@@ -57,7 +56,7 @@ def get_existing_source(coinciding_point, objects, connections, path_list):
         start, end = existing_path[0], existing_path[-1]
             
         # Check if the coinciding point aligns with an existing path
-        if ((coinciding_point[1] == start[1] == end[1]) and (coinciding_point[0] != start[0] != end[0])) or ((coinciding_point[0] == start[0] == end[0]) and (coinciding_point[1] != start[1] != end[1])):
+        if ((coinciding_point[1] == start[1] == end[1]) and (coinciding_point[0] >= start[0] <= end[0])) or ((coinciding_point[0] == start[0] == end[0]) and (coinciding_point[1] >= start[1] <= end[1])):
             
             #print(f"Coinciding point {coinciding_point} aligns with an existing path: {existing_path}")
             # Find the source of this existing path
@@ -94,32 +93,27 @@ def build_dag(objects, connections):
             if potential_source is None:
                 potential_source = get_existing_source(point, objects, connections, path_list)
         
-            #print(f"Potential Source: {potential_source} for point {point}")
+            print(f"Potential Source: {potential_source} for point {point}")
             
             if potential_source:
                 source = potential_source
                 break  # Stop once we find a valid source
 
-        # Identify destination node (last point inside a bbox)
         for point in reversed(path):
             potential_destination = None
             for obj, data in objects.items():
                 if is_inside_bbox(point, data["bbox"]):
                     potential_destination = obj
-                    #print(f"Potential Destination: {potential_destination} for point {point}")
-    
-                    if potential_destination != source:  
-                        destination = potential_destination
-                        break  # Stop after finding a valid destination
+                    if destination is None or potential_destination != source:  
+                        destination = potential_destination  # Allow overwriting previous invalid destinations
             if destination:
-                destination = potential_destination
-                break  # Stop once we find a valid source
-         
-        #print(f"Source: {source}, Destination: {destination}")
+                break  # Stop once we find a valid destination
+
+        print(f"Source: {source}, Destination: {destination}")
         
         # Add path from source to destination in DAG
         if source and destination and source != destination:
-            #print(f"Edge: {source} -> {destination} added to DAG\n")
+            print(f"Edge: {source} -> {destination} added to DAG\n")
             if destination not in graph[source]:  # Avoid duplicate edges
                 graph[source].append(destination)
 
@@ -214,7 +208,7 @@ if __name__ == "__main__":
         objects = {
             "A": {"bbox": (100, 50, 200, 100)},  
             "B": {"bbox": (120, 200, 220, 250)},
-            "C": {"bbox": (100, 400, 200, 450)},
+            "C": {"bbox": (100, 400, 300, 450)},
             "OR": {"bbox": (300, 100, 400, 200)},
             "NOT": {"bbox": (300, 400, 350, 450)},
             "Y1": {"bbox": (500, 150, 600, 200)},
@@ -225,26 +219,49 @@ if __name__ == "__main__":
         }
         
         line_segments = [
-            ((750, 300), (800, 300)),
+            ((200, 75), (305, 150)),
+            ((220, 225), (260, 225)),
+            ((260, 225), (260, 175)),
+            ((260, 175), (305, 175)),
+            ((400, 150), (500, 150)),  
+            ((200, 425), (300, 425)), 
+            ((350, 425), (500, 425)), 
+            ((350, 425), (485, 270)), 
+            ((485, 270), (670, 270)),
+            ((280, 425), (280, 575)),
+            ((280, 575), (600, 575)),
+            ((425, 425), (425, 150)),
+            ((425, 150), (650, 312)),
+            ((530, 575), (530, 600)),
+            ((530, 600), (730, 600)),
+            ((730, 600), (730, 450)),
+            ((730, 450), (650, 450)),
+            ((650, 450), (650, 300)),
+            ((750, 300), (800, 300)) 
+        ]
+        '''
+        line_segments = [
+            ((530, 575), (530, 600)), 
             ((485, 270), (670, 270)),
             ((280, 425), (280, 575)), 
             ((260, 175), (305, 175)), 
             ((220, 225), (260, 225)),
-            ((530, 575), (530, 600)), 
-            ((400, 150), (500, 150)),
             ((650, 450), (650, 300)), 
+            ((730, 450), (650, 450)),
+            ((530, 600), (730, 600)), 
+            ((730, 600), (730, 450)),
+            ((400, 150), (500, 150)),
+            ((280, 575), (600, 575)), 
+            ((750, 300), (800, 300)),
             ((350, 425), (485, 270)), 
             ((200, 425), (300, 425)),
-            ((280, 575), (600, 575)), 
             ((425, 425), (425, 150)), 
             ((350, 425), (500, 425)),
             ((425, 150), (650, 312)), 
             ((200, 75), (305, 150)), 
             ((260, 225), (260, 175)),
-            ((730, 450), (650, 450)),
-            ((530, 600), (730, 600)), 
-            ((730, 600), (730, 450))
         ]
+        '''
         '''
         connections = [
             [(200, 150), (305, 150)],   # A -> OR (straight)
