@@ -1,3 +1,7 @@
+'''
+    Pipeline for:
+    objects{from a Object Detection Model} & line_segments{from Hough Line Transform} -> meaningful connections -> Directed Acyclic Graph Construction -> Topological Sort -> Generate corresponding C code
+'''
 from collections import defaultdict, deque
 
 def build_line_segments_graph(line_segments):
@@ -29,6 +33,7 @@ def trace_paths(graph, start):
 
     return paths
 
+#Organizes the unordered line segments into meaningful connections
 def organize_paths(line_segments):
     graph, start_points = build_line_segments_graph(line_segments)
     all_paths = []
@@ -46,7 +51,8 @@ def is_inside_bbox(point, bbox):
     is_x_within_x_bbox = x_min <= x <= x_max
     is_y_within_y_bbox = y_min <= y <= y_max
     
-    return is_x_within_x_bbox and is_y_within_y_bbox
+    is_within_bbox = is_x_within_x_bbox and is_y_within_y_bbox
+    return is_within_bbox
 
 def get_existing_source(coinciding_point, objects, connections, path_list):
     source = None
@@ -59,7 +65,7 @@ def get_existing_source(coinciding_point, objects, connections, path_list):
         if ((coinciding_point[1] == start[1] == end[1]) and (coinciding_point[0] >= start[0] <= end[0])) or ((coinciding_point[0] == start[0] == end[0]) and (coinciding_point[1] >= start[1] <= end[1])):
             
             #print(f"Coinciding point {coinciding_point} aligns with an existing path: {existing_path}")
-            # Find the source of this existing path
+           
             for obj, data in objects.items():
                 if is_inside_bbox(start, data["bbox"]):
                     source = obj  # Assign valid source
@@ -78,42 +84,45 @@ def build_dag(objects, connections):
     for path in connections:
         source, destination = None, None
         
-        #print(f"Path: {path}")
-        # Identify source node (first point inside a bbox)
         for point in path:
-            potential_source = None  # Reset for each point
-        
-            # Check if the point is inside any bounding box
+            potential_source = None
+            
+            #Checking if starting point of the path is connected to a source object
             for obj, data in objects.items():
                 if is_inside_bbox(point, data["bbox"]):
                     potential_source = obj
-                    break  # Stop checking further if a source is found
-        
-            # If no direct source is found, check for existing paths
+                    break 
+            
+            #If source is not found, check if the point is a fork point which coincides on an existing path
             if potential_source is None:
                 potential_source = get_existing_source(point, objects, connections, path_list)
         
-            print(f"Potential Source: {potential_source} for point {point}")
+            #print(f"Potential Source: {potential_source} for point {point}")
             
             if potential_source:
                 source = potential_source
-                break  # Stop once we find a valid source
+                break
 
-        for point in reversed(path):
+        for point in reversed(path): #reversed(path) because the we are considering the last point of the path
             potential_destination = None
+            
+            #Checking if ending point point of the path is connected to a source object
             for obj, data in objects.items():
                 if is_inside_bbox(point, data["bbox"]):
                     potential_destination = obj
+                    
                     if destination is None or potential_destination != source:  
-                        destination = potential_destination  # Allow overwriting previous invalid destinations
+                        destination = potential_destination  
+                        #print(f"Potential Destination: {potential_destination} for point {point}")
+                        
             if destination:
-                break  # Stop once we find a valid destination
+                break
 
-        print(f"Source: {source}, Destination: {destination}")
+        #print(f"Source: {source}, Destination: {destination}")
         
         # Add path from source to destination in DAG
         if source and destination and source != destination:
-            print(f"Edge: {source} -> {destination} added to DAG\n")
+            #print(f"Edge: {source} -> {destination} added to DAG\n")
             if destination not in graph[source]:  # Avoid duplicate edges
                 graph[source].append(destination)
 
@@ -126,7 +135,7 @@ def build_dag(objects, connections):
         if dest not in graph:
             graph[dest] = []  # Output node (no outgoing edges)
     
-    print(dict(graph))
+    #print(dict(graph))
     return dict(graph)  # Convert defaultdict to normal dict
 
 # Topological Sort to get the order of function calls
@@ -202,7 +211,9 @@ def generate_c_code(graph):
 
     return "\n".join(c_code)
 
+
 if __name__ == "__main__":
+    
     try:
         # refer image.png in repo's main dir
         objects = {
@@ -217,7 +228,7 @@ if __name__ == "__main__":
             "SUM": {"bbox": (650, 250, 750, 350)},
             "Y4": {"bbox": (800, 275, 900, 325)}
         }
-        
+        '''
         line_segments = [
             ((200, 75), (305, 150)),
             ((220, 225), (260, 225)),
@@ -262,7 +273,6 @@ if __name__ == "__main__":
             ((260, 225), (260, 175)),
         ]
         '''
-        '''
         connections = [
             [(200, 150), (305, 150)],   # A -> OR (straight)
             [(220, 225), (260, 225), (260, 175), (305, 175)], # B -> OR (2 corners)
@@ -279,14 +289,30 @@ if __name__ == "__main__":
         
         connections = organize_paths(line_segments)
         
+        '''
         for path in connections:
             print(path)
-            
+        '''    
         dag = build_dag(objects, connections) 
         #c_code = generate_c_code(dag, function_definitions)
         c_code = generate_c_code(dag)
-        print(c_code)
-        #with open("control_law_c_code.c", "w") as file:
-        #    file.write(c_code)
-    except KeyError as e:
-        print(f"ERROR: {e}")
+        #print(c_code)
+        with open("Control_Law_Diagram_C_code.c", "w") as file: #TODO: include module identifier for the control law diagram whihc will be shared by DRDO
+            file.write(c_code)
+        
+        if 'objects' not in locals() or 'objects' not in globals():
+            print("[WARNING] The variable 'objects' is undefined or not declared in the code.")
+        if 'line_segments' not in locals() or 'line_segments' not in globals():
+            print("[WARNING] The variable 'line_segments' is undefined or not declared in the code.")
+        if 'connections' not in locals() or 'connections' not in globals():
+            print("[WARNING] The variable 'connections' is undefined or not declared in the code.")
+        if 'dag' not in locals() or 'dag' not in globals():
+            print("[WARNING] The variable 'dag' (Directed Acyclic Graph) is undefined or not declared in the code.")
+        
+        if 'c_code' not in locals() or 'c_code' not in globals():
+            print("[WARNING] The variable 'c_code' is undefined or not declared in the code.")
+         
+    except KeyError as e1:
+        print(f"ERROR: {e1}")
+    except Exception as e2:
+        print(f"ERROR: {e2}")
