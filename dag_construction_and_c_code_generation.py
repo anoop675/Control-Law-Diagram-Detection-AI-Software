@@ -300,17 +300,9 @@ if __name__ == "__main__":
         with open("Control_Law_Diagram_C_code.c", "w") as file: #TODO: include module identifier for the control law diagram whihc will be shared by DRDO
             file.write(c_code)
         
-        if 'objects' not in locals() or 'objects' not in globals():
-            print("[WARNING] The variable 'objects' is undefined or not declared in the code.")
-        if 'line_segments' not in locals() or 'line_segments' not in globals():
-            print("[WARNING] The variable 'line_segments' is undefined or not declared in the code.")
-        if 'connections' not in locals() or 'connections' not in globals():
-            print("[WARNING] The variable 'connections' is undefined or not declared in the code.")
-        if 'dag' not in locals() or 'dag' not in globals():
-            print("[WARNING] The variable 'dag' (Directed Acyclic Graph) is undefined or not declared in the code.")
-        
-        if 'c_code' not in locals() or 'c_code' not in globals():
-            print("[WARNING] The variable 'c_code' is undefined or not declared in the code.")
+        for variable in ["objects", "line_segments", "connections", "dag", "c_code"]:
+            if variable not in locals() and var not in globals():
+                print(f"[WARNING] The variable '{variab;e}' is undefined or not declared in the code.")
          
     except KeyError as e1:
         print(f"ERROR: {e1}")
