@@ -1,6 +1,7 @@
 # Control Law Diagram Detection Software for Automatic C code Generation for FADEC System, GTRE DRDO internship project
 
-# Algorithm: Control Law Diagram -> Directed Acyclic Graph -> Topological Sort -> C code
+# Algorithm: 
+Control Law Diagram -> Object & Line Detection -> Logical Path Formation (Connections) ->  Directed Acyclic Graph (DAG) Construction -> Logical Mapping & Topological Sort -> C code Generation
 
 # Input:
 Accept a logic diagram image (input_image).
