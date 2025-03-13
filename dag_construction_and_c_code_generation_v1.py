@@ -302,7 +302,7 @@ if __name__ == "__main__":
         
         for variable in ["objects", "line_segments", "connections", "dag", "c_code"]:
             if variable not in locals() and var not in globals():
-                print(f"[WARNING] The variable '{variab;e}' is undefined or not declared in the code.")
+                print(f"[WARNING] The variable '{variable}' is undefined or not declared in the code.")
          
     except KeyError as e1:
         print(f"ERROR: {e1}")
