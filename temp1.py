@@ -120,10 +120,10 @@ lines = [
     ((599, 597), (614, 599))
 ]
 
-new_paths = organize_paths(lines)
-for idx, (path, connections) in enumerate(new_paths, start=1):
-    print(f"Path {idx}: {path}")
-    print("  Line Segments:")
-    for segment in connections:
-        print(f"    {segment}")
-    print()
+new_paths = sorted(organize_paths(lines))
+for (path, connections) in new_paths:
+    print(path)
+    #print("  Line Segments:")
+    #for segment in connections:
+    #    print(f"    {segment}")
+    #print()
