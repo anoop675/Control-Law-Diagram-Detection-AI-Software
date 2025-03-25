@@ -385,10 +385,26 @@ def build_dag(objects, connections):
                 break
 
         # Detect the destination of the path
+        '''
         for point in reversed(path):
             potential_destination = detect_object(point, objects, connections, path_list)
             if potential_destination and potential_destination != source:
                 destination = potential_destination
+                break
+        '''
+        for point in reversed(path): #reversed(path) because the we are considering the last point of the path
+            potential_destination = None
+            
+            #Checking if ending point point of the path is connected to a source object
+            for obj, data in objects.items():
+                if is_inside_bbox(point, data["bbox"]):
+                    potential_destination = obj
+                    
+                    if destination is None or potential_destination != source:  
+                        destination = potential_destination  
+                        print(f"Potential Destination: {potential_destination} for point {point}")
+                        
+            if destination:
                 break
 
         # Add edge to DAG if valid
