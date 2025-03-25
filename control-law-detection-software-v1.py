@@ -304,11 +304,12 @@ def find_connected_paths(line_segments, epsilon=5):
     
     return paths
 
-def is_inside_bbox(point, bbox):
-    """Checks if a point (x, y) is inside a bounding box (x_min, y_min, x_max, y_max)."""
+def is_inside_bbox(point, bbox, tolerance=3):
+    """Checks if a point (x, y) is inside or very close to a bounding box."""
     x, y = point
     x_min, y_min, x_max, y_max = bbox
-    return x_min <= x <= x_max and y_min <= y <= y_max
+
+    return (x_min - tolerance) <= x <= (x_max + tolerance) and (y_min - tolerance) <= y <= (y_max + tolerance)
 
 def find_existing_source(coinciding_point, objects, connections, path_list, tolerance=5):
     """
