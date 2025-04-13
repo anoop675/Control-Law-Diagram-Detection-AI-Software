@@ -17,7 +17,7 @@ def extend_line(x1, y1, x2, y2):
   Image -> Grayscale Conversion -> Gaussian Blur / Bilateral Filtering -> Canny Edge Detection -> Morphological Operations -> Hough Line Transform -> Detected lines
 '''
 def detect_lines(image_path):
-    theta_values = [np.pi/90, np.pi] #for detecting horizontal and vertical lines.
+    theta_values = [np.pi/90, np.pi] #for detecting horizontal and vertical lines
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     #binary = cv2.threshold(img, 50, 255, cv2.THRESH_BINARY_INV)[1]
     #blurred = cv2.GaussianBlur(image, (5,5), 0)
@@ -55,7 +55,7 @@ def detect_lines(image_path):
 
     return detected_lines, edges
 
-# Function to check if two line segments are almost similar in the image space, and be merged based on proximity, overlap, and parallelism.
+# Function to check if two line segments are almost similar in the image space, and be merged based on proximity, overlap, and parallelism
 def can_merge(line1, line2):
     (x1, y1), (x2, y2) = line1
     (x3, y3), (x4, y4) = line2
@@ -75,7 +75,7 @@ def can_merge(line1, line2):
 
     return False
 
-# Function which merges two overlapping or close lines into a single extended line.
+# Function which merges two overlapping or close lines into a single extended line
 def merge_lines(line1, line2):
     (x1, y1), (x2, y2) = line1
     (x3, y3), (x4, y4) = line2
@@ -93,7 +93,7 @@ def merge_lines(line1, line2):
 
     return line1  # If no merging is possible, return the original line
 
-#Function that identifies, groups and merges lines based on proximity, overlap, and parallelism.
+#Function that identifies, groups and merges lines based on proximity, overlap, and parallelism
 def group_and_merge(lines):
     merged_lines = []
     used = set()
@@ -179,8 +179,8 @@ def form_clusters(lines):
 
     return clusters
 
+#update the start and end points of each line inorder to later identify connections of those lines
 def update_lines_to_connect(lines):
-
   def distance(p1, p2):
       return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
@@ -212,20 +212,21 @@ def update_lines_to_connect(lines):
                   adjusted_points[(j, "end")] = (x2b, y2b)
 
   # Apply adjustments
-  for (line_idx, position), new_point in adjusted_points.items():
-      start, end = updated_lines[line_idx]
+  for (i, position), new_point in adjusted_points.items():
+      start, end = updated_lines[i]
       if position == "start":
-          updated_lines[line_idx] = (new_point, end)
+          updated_lines[i] = (new_point, end)
       else:
-          updated_lines[line_idx] = (start, new_point)
+          updated_lines[i] = (start, new_point)
 
   return updated_lines
 
+#Returns distance of line
 def distance(p1, p2):
     return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
+#Normalize points by reducing small variations and sorting consistently
 def normalize_points(points: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
-    """Normalize points by reducing small variations and sorting consistently."""
     VARIATION_THRESHOLD = 2  # Max allowable x/y variation (2 pixels)
     points = sorted(points, key=lambda p: (p[0], p[1]))  # Sort by x, then y
     
@@ -240,8 +241,8 @@ def normalize_points(points: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
         normalized.append((x, y))
     return normalized
 
+#Ensures horizontal lines are left-to-right and vertical lines are top-to-bottom
 def standardize_line_segments(segments: List[Tuple[Tuple[int, int], Tuple[int, int]]]) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
-    """Ensure horizontal lines are left-to-right and vertical lines are top-to-bottom."""
     standardized = []
     for start, end in segments:
         x1, y1 = start
@@ -255,21 +256,21 @@ def standardize_line_segments(segments: List[Tuple[Tuple[int, int], Tuple[int, i
         standardized.append((start, end))
     return standardized
 
+#Creates an adjacency list representation of the graph
 def build_graph(line_segments):
-    """Creates an adjacency list representation of the graph."""
     graph = defaultdict(set)
     for start, end in line_segments:
         graph[start].add(end)
         graph[end].add(start)
     return {key: list(value) for key, value in graph.items()}
 
+#Finds connected paths from line segments with consistent ordering
 def find_connected_paths(line_segments, epsilon=5):
-    """Finds connected paths from line segments with consistent ordering."""
     graph = defaultdict(set)
     corrected_points = {}
-    
+
+    #Find the closest existing point within threshold, or use itself.
     def get_corrected_point(point):
-        """Find the closest existing point within threshold, or use itself."""
         for existing in corrected_points:
             if distance(point, existing) <= epsilon:
                 return corrected_points[existing]
@@ -304,18 +305,15 @@ def find_connected_paths(line_segments, epsilon=5):
     
     return paths
 
+ #Checks if a point (x, y) is inside or very close to a bounding box
 def is_inside_bbox(point, bbox, tolerance=3):
-    """Checks if a point (x, y) is inside or very close to a bounding box."""
     x, y = point
     x_min, y_min, x_max, y_max = bbox
 
     return (x_min - tolerance) <= x <= (x_max + tolerance) and (y_min - tolerance) <= y <= (y_max + tolerance)
-
+    
+#Finds an existing source for a coinciding point by first checking strict alignment, then allowing a tolerance-based search
 def find_existing_source(coinciding_point, objects, connections, path_list, tolerance=5):
-    """
-    Finds an existing source for a coinciding point by first checking strict alignment,
-    then allowing a tolerance-based search.
-    """
     source = None
 
     # Step 1: Check for exact path alignment (strict check)
@@ -346,15 +344,15 @@ def find_existing_source(coinciding_point, objects, connections, path_list, tole
 
     return None  # No match found
 
+#Identify the true source of a fork point based on previous paths
 def find_fork_source(fork_point, path_list):
-    """Identify the true source of a fork point based on previous paths."""
     for path in path_list:
         if fork_point in path and path.index(fork_point) > 0:
             return path[0]  # The true source of this fork
     return None
 
+#Determine the source for a given point
 def detect_object(point, objects, connections, path_list):
-    """Determine the source for a given point."""
     for obj, data in objects.items():
         if is_inside_bbox(point, data["bbox"]):
             return obj  # Direct source found
@@ -367,8 +365,8 @@ def detect_object(point, objects, connections, path_list):
     # Finally, check for previous paths
     return find_existing_source(point, objects, connections, path_list)
 
+#Build a Directed Acyclic Graph (DAG) using objects and path connections
 def build_dag(objects, connections):
-    """Build a Directed Acyclic Graph (DAG) using objects and path connections."""
     graph = defaultdict(list)
     path_list = []  # Store all paths for reference
     
@@ -447,14 +445,13 @@ def topological_sort(graph):
 
 # Generate C code from topological order
 def generate_c_code(graph):
-    topo_order = topological_sort(graph)  # Get nodes in dependency order
+    topo_order = topological_sort(graph)
     c_code = [
         "#include <stdio.h>", "#include <stdlib.h>", "#include <float.h>", "#include <stdbool.h>",
         "#include <string.h>", "#include <math.h>\n"
     ]
-    c_code.append("// TODO: function definitions here")
-
-    c_code.append("\nint main(void) {")
+    c_code.append("// TODO: function definitions here\n")
+    c_code.append("int main(void) {")
 
     temp_var_count = 1
     temp_vars = {}
@@ -462,10 +459,13 @@ def generate_c_code(graph):
     variable_declarations = []
     assignments = []
 
+    # Track outputs mapped to pointer-returning functions
     pointer_return_functions = {
         "INTEGRATOR": 2,
         "logic_array": 8
     }
+
+    pointer_output_indices = defaultdict(list)  # function -> [Y2, Y5, etc.]
 
     for node in topo_order:
         if node in {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}:
@@ -477,17 +477,21 @@ def generate_c_code(graph):
 
         if node.startswith("Y"):
             variable_declarations.append(f"    double {node};  // Output variable")
-            # Identify the node providing input
-            if len(input_vars) == 1:
+            if len(inputs) == 1:
                 source_func = inputs[0]
+
                 if source_func in pointer_return_functions:
-                    idx = int(node[1:]) - 1  # e.g., Y2 → 1
-                    assignments.append(f"    {node} = {temp_vars[source_func]}[{idx}];")
+                    # Assign index based on how many outputs already mapped
+                    index = len(pointer_output_indices[source_func])
+                    pointer_output_indices[source_func].append(node)
+                    pointer_var = temp_vars.get(source_func, source_func)
+                    assignments.append(f"    {node} = {pointer_var}[{index}];")
                 else:
                     assignments.append(f"    {node} = {input_vars[0]};")
             else:
                 assignments.append(f"    {node};  // Undefined behavior detected")
             output_nodes.append(node)
+
         else:
             temp_var = f"temp{temp_var_count}"
             temp_vars[node] = temp_var
@@ -503,15 +507,15 @@ def generate_c_code(graph):
     c_code.extend(variable_declarations)
     c_code.append("")
     c_code.extend(assignments)
-
     for output in output_nodes:
         c_code.append(f'    printf("{output} = %f\\n", {output});')
 
     c_code.append("\n    return 0;")
     c_code.append("}")
-
+    
     return "\n".join(c_code)
 
+# Main Function
 if __name__ == "__main__":
     try:
         objects = {
@@ -582,28 +586,30 @@ if __name__ == "__main__":
         image_path = "diagram lines.jpg"
         lines, edges = detect_lines(image_path)
         normalized_lines = []
-        clusters = form_clusters(lines) #used to group unecessary & noisy lines and normalize it into a single line based on proximity
-        #clustered_lines = {f"Group {i+1}": cluster for i, cluster in clusters}
-        #print(clusters)
+        clusters = form_clusters(lines) #used to group unecessary & noisy lines (returned by hough line transform) and normalize it into a single line based on proximity
+        '''
+        clustered_lines = {f"Group {i+1}": cluster for i, cluster in clusters}
+        print(clusters)
+        '''
         for cluster in clusters:
-            normalized_lines.append(group_and_merge(cluster)) #first-pass of merging lines
+            normalized_lines.append(group_and_merge(cluster)) #first-pass of merging lines in the cluster group
 
         flat_list = [line for cluster in normalized_lines for line in cluster]
         lines2 = merge_lines2(flat_list) #second-pass of merging lines
-        #lines3 = connect_lines(lines2)
-        lines2 = merge_lines2(lines2)
-        #lines3 = merge_lines2(lines2)
-        updated_lines = update_lines_to_connect(lines2)
+        lines2 = merge_lines2(lines2) #third-pass of merging lines
+        
+        updated_lines = update_lines_to_connect(lines2)  #update the start and end points of each line inorder to later identify connections of those lines
 
-        standardized_segments = standardize_line_segments(updated_lines)
-        connected_paths = find_connected_paths(standardized_segments)
+        standardized_segments = standardize_line_segments(updated_lines) #ensures horizontal lines follows left-to-right convention and vertical lines follow top-to-bottom convention
+        connected_paths = find_connected_paths(standardized_segments) #find meaningful paths from the line segments (with the correct conventions)
 
-        dag = build_dag(objects, connected_paths)
+        dag = build_dag(objects, connected_paths) #build a Directed Acyclic Graph (Adjacency List) of the objects and connections
+        '''
         for item in dag.items():
           print(item) 
-        
+        '''
         #c_code = generate_c_code(dag, function_definitions)
-        c_code = generate_c_code(dag)
+        c_code = generate_c_code(dag) #generate C code from the graph
         #print(c_code)
         with open("Control Law Diagram.c", "w") as file: #TODO: include module identifier for the control law diagram whihc will be shared by DRDO
             file.write(c_code)
