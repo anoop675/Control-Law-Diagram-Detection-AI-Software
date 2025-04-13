@@ -1,3 +1,18 @@
+'''
+Parameters for Line Detection Pipeline
+    DIAMETER_OF_PIXEL_NEIGHBOURHOOD: Final = 5
+    SIGMA_COLOR: Final = 28 or 26
+    SIGMA_SPACE: Final = 28 or 26
+
+    LOWER_HYSTERISIS_THRESHOLD: Final = 50
+    HIGHER_HYSTERISIS_THRESHOLD: Final = 200
+    APERTURE_SIZE: Final = 3
+
+    RHO: Final = 1
+    THRESHOLD: Final = 12
+    MIN_LINE_LENGTH: Final = 10
+    MAX_LINE_GAP: Final = 8
+'''
 import cv2
 import math
 import numpy as np
@@ -24,8 +39,8 @@ def detect_lines(image_path):
     #blurred = cv2.blur(img,(5,5))
 
     DIAMETER_OF_PIXEL_NEIGHBOURHOOD: Final = 5
-    SIGMA_COLOR: Final = 28
-    SIGMA_SPACE: Final = 28
+    SIGMA_COLOR: Final = 26
+    SIGMA_SPACE: Final = 26
     # 8 80 80   9 85 85  9 80 80
     blurred = cv2.bilateralFilter(img, DIAMETER_OF_PIXEL_NEIGHBOURHOOD, SIGMA_COLOR, SIGMA_SPACE, cv2.BORDER_DEFAULT)
 
@@ -401,7 +416,7 @@ def build_dag(objects, connections):
                     
                     if destination is None or potential_destination != source:  
                         destination = potential_destination  
-                        print(f"Potential Destination: {potential_destination} for point {point}")
+                        #print(f"Potential Destination: {potential_destination} for point {point}")
                         
             if destination:
                 break
@@ -599,15 +614,19 @@ if __name__ == "__main__":
         lines2 = merge_lines2(lines2) #third-pass of merging lines
         
         updated_lines = update_lines_to_connect(lines2)  #update the start and end points of each line inorder to later identify connections of those lines
+        image = cv2.imread(image_path)
+        for ((x1, y1), (x2, y2)) in sorted(lines2):
+            cv2.line(image, (x1, y1), (x2, y2), (0, 0, 255), 2)  # Red color & thickness = 2
+        cv2_imshow(image)
 
         standardized_segments = standardize_line_segments(updated_lines) #ensures horizontal lines follows left-to-right convention and vertical lines follow top-to-bottom convention
         connected_paths = find_connected_paths(standardized_segments) #find meaningful paths from the line segments (with the correct conventions)
 
         dag = build_dag(objects, connected_paths) #build a Directed Acyclic Graph (Adjacency List) of the objects and connections
-        '''
+        
         for item in dag.items():
           print(item) 
-        '''
+        
         #c_code = generate_c_code(dag, function_definitions)
         c_code = generate_c_code(dag) #generate C code from the graph
         #print(c_code)
