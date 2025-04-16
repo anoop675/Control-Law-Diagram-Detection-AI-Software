@@ -546,7 +546,7 @@ def check_c_syntax(c_code: str) -> bool:
             text=True
         )
         if result.returncode == 0:
-            print("Syntax check: OK [No errors found]")
+            print(result.stderr + "\nSyntax check: OK [No errors found]")
             return True
         else:
             raise Exception("Syntax check: ERROR found in the C code:\n" + result.stderr)
