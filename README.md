@@ -2,6 +2,8 @@
 
 # Algorithm: 
 Control Law Diagram -> Object & Line Detection -> Logical Path Formation (Connections) ->  Directed Acyclic Graph (DAG) Construction -> Logical Mapping & Topological Sort -> C code Generation
+<img width="602" alt="image" src="https://github.com/user-attachments/assets/8b6bc98d-972d-4e9c-a48e-48b6b8c8475e" />
+
 
 # Input:
 Accept a logic diagram image (input_image).
