@@ -40,7 +40,7 @@ for result in results:
         class_id = int(box.cls)  # Class index
         conf = box.conf.item()  # Confidence score
 
-        if conf >= 0.7:
+        if conf >= 0.3:
           # Draw bounding box
           color = (0, 255, 0)  # Green box
           cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
