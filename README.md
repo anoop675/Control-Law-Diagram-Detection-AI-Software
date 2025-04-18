@@ -1,4 +1,13 @@
 # Control Law Diagram Detection Software for Automatic C code Generation for FADEC System, GTRE DRDO internship project
+# TODO: Make custom dataset "data.zip" more robust with more variations and augumentations
+
+# H/W & S/W Requirements:
+Runtime Environment: Google Colab
+CPU & RAM: Nvidia Tensor Core A100 GPU (available in Google Colab)
+Dataset: data.zip (extracted)
+Annotation Tool: Computer Vision Annotation Tool (CVAT) [https://app.cvat.ai/]
+Model: YOLO
+
 
 # Algorithm: 
 Control Law Diagram -> Object & Line Detection -> Logical Path Formation (Connections) ->  Directed Acyclic Graph (DAG) Construction -> Logical Mapping & Topological Sort -> C code Generation
