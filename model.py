@@ -19,7 +19,7 @@ print(results)  # Shows where results and weights are saved
 '''
 
 #Load trained model
-model = YOLO("runs/detect/train4/weights/best.pt")
+model = YOLO("best_weights_for_model.pt")
 # Use the model
 
 #!scp -r /content/runs '/content/gdrive/My Drive/data'
