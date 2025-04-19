@@ -25,12 +25,14 @@ model = YOLO("best_weights_for_model.pt")
 #!scp -r /content/runs '/content/gdrive/My Drive/data'
 
 # Run detection correctly (ensuring it returns `YOLO.Result`)
-results = model.predict("temp9.jpg")  # Run inference properly
+results = model.predict("temp10.jpg")  # Run inference properly
 
 # Load the input image
-image = cv2.imread("temp9.jpg")
+image = cv2.imread("temp10.jpg")
 
 # Process results properly
+objects = {}
+
 for result in results:
     boxes = result.boxes  # List of detected bounding boxes
 
@@ -40,10 +42,16 @@ for result in results:
         class_id = int(box.cls)  # Class index
         conf = box.conf.item()  # Confidence score
 
-        if conf >= 0.3:
+        if conf >= 0.5:
+          label = model.names[class_id]
+          bbox = (x1, y1, x2, y2)
+
+          # Save to dictionary (if you want only one bbox per class)
+          objects[label] = {"bbox": bbox}
+
           # Draw bounding box
           color = (0, 255, 0)  # Green box
-          cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
+          cv2.rectangle(image, (x1, y1), (x2, y2), color, 1)
 
           # Put class label text above the bounding box
           label = f"{model.names[class_id]} ({conf:.2f})"
@@ -54,6 +62,6 @@ for result in results:
 cv2_imshow(image)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-
+print(objects)
 # Save the output image
 cv2.imwrite("output_with_boxes.jpg", image)
